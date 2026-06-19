@@ -1,0 +1,49 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Icarus Verilog / Verilator products
+sim/simv
+sim/simv.exe
+sim/obj_dir/
+
+# Vivado xsim generated files
+sim/xsim.dir/
+sim/recheck/
+sim/*.wdb
+sim/*.jou
+sim/*.pb
+sim/xelab.log
+sim/xsim.log
+sim/xvlog.log
+sim/webtalk*.jou
+sim/webtalk*.log
+
+# Vivado project, synthesis, and implementation products
+*.Xil/
+.Xil/
+*.cache/
+*.gen/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+*.srcs/
+*.xpr
+*.dcp
+*.bit
+*.ltx
+*.str
+
+# Generic editor/OS temporary files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Keep reproducible project artifacts under version control:
+# sim/*.mem, sim/program.lst, sim/output.log, and sim/dump.vcd.

@@ -1,0 +1,2 @@
+open_checkpoint vector_processor_synth.dcp
+report_power -file power_estimate.rpt

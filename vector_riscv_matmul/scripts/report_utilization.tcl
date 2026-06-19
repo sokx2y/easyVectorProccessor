@@ -1,0 +1,2 @@
+open_checkpoint vector_processor_synth.dcp
+report_utilization -hierarchical -file utilization_hierarchical.rpt
