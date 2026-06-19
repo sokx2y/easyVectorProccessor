@@ -8,11 +8,17 @@ venv/
 # Icarus Verilog / Verilator products
 sim/simv
 sim/simv.exe
+sim/simv_pipeline
+sim/simv_pipeline.exe
+sim/simv_forwarding
+sim/simv_forwarding.exe
 sim/obj_dir/
 
 # Vivado xsim generated files
 sim/xsim.dir/
 sim/recheck/
+sim/pipeline_check*/
+sim/baseline_check*/
 sim/*.wdb
 sim/*.jou
 sim/*.pb

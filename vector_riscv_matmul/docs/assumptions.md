@@ -28,3 +28,10 @@
    16-bit constant with separate low/high-byte instructions.
 10. Arithmetic is signed two's-complement. The selected deterministic test
     values are positive and fit comfortably in 32-bit accumulators.
+11. The optional pipeline assumes ICM, Scalar DCM, and Vector DCM have
+    one-cycle-stage-compatible combinational reads. No memory-busy condition
+    is asserted. Replacing them with synchronous BRAM requires enabling
+    stalls or adding another memory pipeline stage.
+12. Register files have asynchronous reads and synchronous writes. Correct
+    same-cycle dependencies do not rely on write-first behavior; the
+    pipelined top explicitly bypasses EX/WB data into both ID and EX.

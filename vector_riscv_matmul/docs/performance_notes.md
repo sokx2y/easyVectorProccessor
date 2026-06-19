@@ -12,15 +12,46 @@ The generated program has 234 instructions including HALT:
   8 VMAC-s operations, 1 output-address MOV, and 1 VSTORE = 29 instructions.
 - 8 rows x 29 = 232, plus setup and HALT = 234.
 
-Vivado xsim 2023.2 reports `cycles=235`; the extra observed cycle is due to
-the testbench sampling the registered `halted` output after HALT commits.
+With race-free post-edge sampling, Vivado xsim 2023.2 reports 234 cycles:
+one architectural instruction commits per cycle, including HALT.
+
+## Four-stage pipeline
+
+The four-stage version overlaps IF, ID, EX, and WB. With no stalls, an
+N-instruction program completes in approximately `N + 3` cycles. The same
+234-instruction image reports:
+
+- baseline: 234 cycles;
+- pipeline: 237 cycles;
+- verified VLOAD-to-VMAC forwarding events: 64.
+
+This result deserves careful interpretation. The existing baseline is already
+a single-cycle CPI=1 processor, not a four-cycle multi-cycle processor.
+Pipelining therefore does not reduce its cycle count; filling and draining
+add three cycles. The intended performance benefit is a shorter clock period:
+the long fetch/decode/RF/memory-or-MAC/writeback path is split across four
+cycles. Actual wall-clock improvement must be demonstrated by synthesis Fmax:
+
+```text
+baseline time  = 234 x baseline clock period
+pipeline time  = 237 x pipeline clock period
+```
+
+The pipeline wins latency when its achievable period is less than
+`234/237`, about 98.7%, of the baseline period. A conventional non-overlapped
+four-cycle multi-cycle implementation would instead take roughly 936 cycles,
+against which the pipeline gives the expected throughput improvement.
 
 ## Bottlenecks
 
 - Fully unrolled code increases ICM traffic and size.
 - B rows are reloaded for every output row.
-- Scalar LOAD, vector VLOAD, and VMAC do not overlap.
-- There is no pipeline, loop controller, or dual-port scheduling.
+- In the baseline, scalar LOAD, vector VLOAD, and VMAC do not overlap.
+- The pipeline overlaps instructions, but RAW dependencies add forwarding
+  mux depth and constrain scheduling.
+- VMAC accumulator dependence remains a serial dependency between output-row
+  updates even when it is forwarded without a stall.
+- There is no loop controller or reuse of the eight B vectors across rows.
 
 ## Synthesis/report placeholders
 

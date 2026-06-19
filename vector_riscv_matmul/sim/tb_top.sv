@@ -58,9 +58,9 @@ module tb_top;
     cycles = 0;
     while (!halted && cycles < MAX_CYCLES) begin
       @(posedge clk);
+      #1;
       cycles = cycles + 1;
     end
-    #1;
 
     print_inputs();
     errors = 0;
