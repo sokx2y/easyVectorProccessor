@@ -35,3 +35,10 @@
 12. Register files have asynchronous reads and synchronous writes. Correct
     same-cycle dependencies do not rely on write-first behavior; the
     pipelined top explicitly bypasses EX/WB data into both ID and EX.
+13. The deployment interface and processor share one clock domain. AXI CDC is
+    not required because the Zynq FCLK drives both the AXI slave and core.
+14. Host memory windows are legal only outside RUN. ARM_RESET is a core-reset
+    interval and is considered non-busy, although normal software waits for
+    IDLE or DONE before memory access.
+15. SOFT_RESET clears architectural processor state, cycle count, DONE, and
+    ACCESS_ERROR but deliberately preserves ICM and DCM contents.

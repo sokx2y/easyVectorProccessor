@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .venv/
 venv/
 
@@ -13,24 +15,30 @@ sim/simv_pipeline.exe
 sim/simv_forwarding
 sim/simv_forwarding.exe
 sim/obj_dir/
+obj_dir/
 
-# Vivado xsim generated files
-sim/xsim.dir/
+# Vivado/XSim generated files
+xsim.dir/
 sim/recheck/
 sim/pipeline_check*/
 sim/baseline_check*/
-sim/*.wdb
-sim/*.jou
-sim/*.pb
-sim/xelab.log
-sim/xsim.log
-sim/xvlog.log
-sim/webtalk*.jou
-sim/webtalk*.log
+*.wdb
+*.wcfg
+*.pb
+xelab.log
+xsim.log
+xvlog.log
+xsim.jou
+vivado.jou
+vivado.log
+webtalk*.jou
+webtalk*.log
 
 # Vivado project, synthesis, and implementation products
-*.Xil/
 .Xil/
+*.Xil/
+vivado/build/
+vivado/gui_vector_processor/
 *.cache/
 *.gen/
 *.hw/
@@ -43,13 +51,20 @@ sim/webtalk*.log
 *.bit
 *.ltx
 *.str
+*.mmi
+*.sysdef
+*.hdf
 
 # Generic editor/OS temporary files
 .DS_Store
 Thumbs.db
+desktop.ini
 *.swp
 *.swo
 *~
 
-# Keep reproducible project artifacts under version control:
-# sim/*.mem, sim/program.lst, sim/output.log, and sim/dump.vcd.
+# Intentionally retained for reproducibility and the course report:
+# - rtl/, asm/, constraints/, scripts/, docs/
+# - sim/*.sv, sim/*.ps1, sim/*.sh, sim/*.tcl
+# - sim/*.mem and sim/program.lst
+# - sim/output*.log and sim/dump*.vcd

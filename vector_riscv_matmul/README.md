@@ -29,6 +29,9 @@ for i = 0..7:
 - `scripts/`: assembler, data generator, and result checker.
 - `sim/`: testbench, memory images, run scripts, log, and VCD.
 - `docs/`: ISA, assumptions, architecture, verification, and analysis.
+- `constraints/`: standalone AXI-top timing constraints.
+- `vivado/build/`: reproducible generated synthesis/implementation products
+  (ignored by Git).
 
 The block-by-block comparison with the supplied course figures is documented
 in `docs/diagram_alignment.md`.
@@ -84,6 +87,65 @@ The pipeline testbench instantiates both versions, runs the same memory
 images, compares both against the same golden C, reports both cycle counts,
 and creates `dump_pipeline.vcd`. The current xsim result is 234 baseline
 cycles and 237 pipelined cycles, with 64 VLOAD-to-VMAC forwarding events.
+
+### Host memory ports
+
+Both processor tops expose the same deployment-oriented Host ports:
+
+- ICM: 512 x 32-bit words with byte write strobes.
+- Scalar DCM: 256 x 16-bit words mapped into the low half of a 32-bit Host
+  word.
+- Vector DCM: 256 entries, addressed as 16 independent 32-bit lanes.
+
+`USE_MEM_INIT=1` retains the normal `$readmemh` simulation flow.
+Deployment wrappers set `USE_MEM_INIT=0` and load all memories through the
+Host ports. Run `sim/run_memory_host_xsim.ps1` to verify these ports.
+
+### Deployment control and AXI-Lite simulation
+
+The protocol-independent deployment controller uses the four-stage pipeline,
+holds the core in reset while memories are loaded, counts RUN cycles, and
+exposes a 64 KiB byte-addressed register/memory map. Verify it with:
+
+```powershell
+cd sim
+.\run_host_wrapper_xsim.ps1
+```
+
+The PYNQ-facing top is `rtl/pynq_vector_processor_ip.sv`. It adds a 32-bit
+AXI4-Lite slave with independent AW/W capture, byte strobes, and OKAY/SLVERR
+responses. Run the complete AXI dynamic-load regression with:
+
+```powershell
+cd sim
+.\run_pynq_axi_xsim.ps1
+```
+
+The current results are:
+
+- protocol-independent Host wrapper: two runtime-loaded matrix tests PASS,
+  237 cycles each;
+- AXI4-Lite wrapper: dynamic program/A/B load and result readback PASS,
+  237 cycles.
+
+See `docs/pynq_deployment.md` for the address map and transaction rules.
+
+### Vivado synthesis, implementation, and GUI
+
+The course flow does not require a physical PYNQ board. The AXI RTL top has
+been synthesized and routed for `xc7z020clg400-1`. The standalone top fails
+100 MHz with WNS -1.165 ns and passes 80 MHz with WNS +0.228 ns.
+
+```powershell
+vivado -mode batch -source scripts/run_vivado_synth.tcl
+vivado -mode batch -source scripts/run_vivado_impl.tcl -tclargs 12.500
+vivado -mode batch -source scripts/create_vivado_gui_project.tcl
+```
+
+Open `vivado/gui_vector_processor/gui_vector_processor.xpr` to inspect the
+AXI behavioral waveform. See `docs/vivado_gui_workflow.md` for exact GUI
+steps and `docs/implementation_results.md` for resource, timing, latency,
+and power results.
 
 ## Memory image formats
 

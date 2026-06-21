@@ -1,6 +1,24 @@
-module top_pipelined (
+module top_pipelined #(
+  parameter bit USE_MEM_INIT = 1'b1
+) (
   input  logic         clk,
   input  logic         rst_n,
+  input  logic         host_icm_we,
+  input  logic [8:0]   host_icm_addr,
+  input  logic [31:0]  host_icm_wdata,
+  input  logic [3:0]   host_icm_wstrb,
+  output logic [31:0]  host_icm_rdata,
+  input  logic         host_scalar_we,
+  input  logic [7:0]   host_scalar_addr,
+  input  logic [31:0]  host_scalar_wdata,
+  input  logic [3:0]   host_scalar_wstrb,
+  output logic [31:0]  host_scalar_rdata,
+  input  logic         host_vector_we,
+  input  logic [7:0]   host_vector_entry,
+  input  logic [3:0]   host_vector_lane,
+  input  logic [31:0]  host_vector_wdata,
+  input  logic [3:0]   host_vector_wstrb,
+  output logic [31:0]  host_vector_rdata,
   output logic         halted,
   output logic [15:0]  dbg_pc,
   output logic         dbg_if_id_valid,
@@ -95,7 +113,12 @@ module top_pipelined (
     .enable(!fetch_stopped && !stall),
     .value(fetch_pc)
   );
-  icm u_icm(.addr(fetch_pc), .instruction(fetch_instruction));
+  icm #(.USE_MEM_INIT(USE_MEM_INIT)) u_icm(
+    .clk, .addr(fetch_pc), .instruction(fetch_instruction),
+    .host_we(host_icm_we), .host_addr(host_icm_addr),
+    .host_wdata(host_icm_wdata), .host_wstrb(host_icm_wstrb),
+    .host_rdata(host_icm_rdata)
+  );
 
   if_id_reg u_if_id(
     .clk, .rst_n, .enable(!stall), .flush(flush_if),
@@ -218,15 +241,21 @@ module top_pipelined (
   assign ex_scalar_addr = ex_scalar_a + id_ex_imm5;
   assign ex_vector_addr = ex_scalar_a + id_ex_imm5;
 
-  scalar_dcm u_scalar_dcm(
+  scalar_dcm #(.USE_MEM_INIT(USE_MEM_INIT)) u_scalar_dcm(
     .clk, .re(id_ex_valid && id_ex_scalar_mem_re),
     .we(id_ex_valid && id_ex_scalar_mem_we && !halted),
-    .addr(ex_scalar_addr), .wdata(ex_scalar_b), .rdata(scalar_mem_rdata)
+    .addr(ex_scalar_addr), .wdata(ex_scalar_b), .rdata(scalar_mem_rdata),
+    .host_we(host_scalar_we), .host_addr(host_scalar_addr),
+    .host_wdata(host_scalar_wdata), .host_wstrb(host_scalar_wstrb),
+    .host_rdata(host_scalar_rdata)
   );
-  vector_dcm u_vector_dcm(
+  vector_dcm #(.USE_MEM_INIT(USE_MEM_INIT)) u_vector_dcm(
     .clk, .re(id_ex_valid && id_ex_vector_mem_re),
     .we(id_ex_valid && id_ex_vector_mem_we && !halted),
-    .addr(ex_vector_addr), .wdata(ex_vector_src), .rdata(vector_mem_rdata)
+    .addr(ex_vector_addr), .wdata(ex_vector_src), .rdata(vector_mem_rdata),
+    .host_we(host_vector_we), .host_entry(host_vector_entry),
+    .host_lane(host_vector_lane), .host_wdata(host_vector_wdata),
+    .host_wstrb(host_vector_wstrb), .host_rdata(host_vector_rdata)
   );
 
   always_comb begin

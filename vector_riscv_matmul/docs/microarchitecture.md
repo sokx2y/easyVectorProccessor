@@ -79,3 +79,55 @@ Memory reads are combinational and finish in one EX cycle, so data hazards
 need no stall. `hazard_unit.sv` exposes `stall` for a future synchronous or
 variable-latency memory and flushes IF after HALT is decoded. No branch
 hazards exist because the ISA has no branch or jump.
+
+## Host memory access
+
+ICM, Scalar DCM, and Vector DCM each provide a second, deployment-oriented
+Host access path. This path will later connect to the AXI-Lite control
+wrapper, while the original processor ports retain their existing timing.
+
+- ICM Host addressing is one 32-bit instruction per address.
+- Scalar DCM returns a zero-extended 16-bit scalar in a 32-bit Host word.
+- Vector DCM Host addressing selects one entry and one 32-bit lane, allowing
+  a 512-bit vector to be transferred as 16 AXI-sized words.
+- Host writes support byte strobes.
+- If a Host and processor write reach the same memory in one cycle, the Host
+  write has priority. The deployment controller will prevent such accesses
+  while the processor is running.
+
+The `USE_MEM_INIT` parameter defaults to one for existing simulations.
+Deployment instantiations disable it so program and matrix data must be
+loaded dynamically.
+
+## Deployment controller
+
+`processor_host_wrapper.sv` instantiates the pipeline with
+`USE_MEM_INIT=0`. Its state machine is:
+
+```text
+IDLE -> ARM_RESET -> RUN -> DONE
+```
+
+IDLE and DONE permit memory access. ARM_RESET provides a complete core reset
+interval before RUN. During RUN, the cycle counter increments once per core
+cycle and all memory-window requests are rejected. DONE is entered after
+HALT reaches pipeline writeback; the measured count remains 237.
+
+SOFT_RESET returns to IDLE, clears status and pipeline/register state, but
+does not erase ICM or DCM contents. START can therefore rerun the current
+program, while A and B can be replaced through Host writes without rebuilding
+the RTL.
+
+## AXI4-Lite front end
+
+`axi_lite_frontend.sv` translates a 32-bit, 16-bit-address AXI4-Lite slave
+into the protocol-independent Host request. It supports:
+
+- AW and W arriving in either order;
+- one outstanding read or write;
+- WSTRB propagation;
+- response valid held until ready;
+- OKAY for valid operations and SLVERR for rejected operations.
+
+The synthesizable PYNQ IP top contains only the AXI slave ports; wide internal
+debug buses are not exposed as FPGA pins.

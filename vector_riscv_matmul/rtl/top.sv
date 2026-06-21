@@ -1,6 +1,24 @@
-module top (
+module top #(
+  parameter bit USE_MEM_INIT = 1'b1
+) (
   input  logic        clk,
   input  logic        rst_n,
+  input  logic        host_icm_we,
+  input  logic [8:0]  host_icm_addr,
+  input  logic [31:0] host_icm_wdata,
+  input  logic [3:0]  host_icm_wstrb,
+  output logic [31:0] host_icm_rdata,
+  input  logic        host_scalar_we,
+  input  logic [7:0]  host_scalar_addr,
+  input  logic [31:0] host_scalar_wdata,
+  input  logic [3:0]  host_scalar_wstrb,
+  output logic [31:0] host_scalar_rdata,
+  input  logic        host_vector_we,
+  input  logic [7:0]  host_vector_entry,
+  input  logic [3:0]  host_vector_lane,
+  input  logic [31:0] host_vector_wdata,
+  input  logic [3:0]  host_vector_wstrb,
+  output logic [31:0] host_vector_rdata,
   output logic        halted,
   output logic [15:0] dbg_pc,
   output logic [31:0] dbg_instruction,
@@ -27,7 +45,12 @@ module top (
   logic [VECTOR_WIDTH-1:0] vector_mem_data, vector_wdata, vector_mac_data;
 
   pc u_pc(.clk, .rst_n, .enable(!halted), .value(pc_value));
-  icm u_icm(.addr(pc_value), .instruction(instruction));
+  icm #(.USE_MEM_INIT(USE_MEM_INIT)) u_icm(
+    .clk, .addr(pc_value), .instruction(instruction),
+    .host_we(host_icm_we), .host_addr(host_icm_addr),
+    .host_wdata(host_icm_wdata), .host_wstrb(host_icm_wstrb),
+    .host_rdata(host_icm_rdata)
+  );
   decoder u_decoder(
     .instruction, .opcode, .rd, .rs1, .rs2, .scalar_rf_we,
     .vector_rf_we, .scalar_mem_re, .scalar_mem_we, .vector_mem_re,
@@ -43,9 +66,12 @@ module top (
   );
 
   assign scalar_addr = scalar_a + imm5_ext;
-  scalar_dcm u_scalar_dcm(
+  scalar_dcm #(.USE_MEM_INIT(USE_MEM_INIT)) u_scalar_dcm(
     .clk, .re(scalar_mem_re), .we(scalar_mem_we && !halted),
-    .addr(scalar_addr), .wdata(scalar_b), .rdata(scalar_mem_data)
+    .addr(scalar_addr), .wdata(scalar_b), .rdata(scalar_mem_data),
+    .host_we(host_scalar_we), .host_addr(host_scalar_addr),
+    .host_wdata(host_scalar_wdata), .host_wstrb(host_scalar_wstrb),
+    .host_rdata(host_scalar_rdata)
   );
 
   vector_rf u_vector_rf(
@@ -55,9 +81,12 @@ module top (
   );
 
   assign vector_addr = scalar_a + imm5_ext;
-  vector_dcm u_vector_dcm(
+  vector_dcm #(.USE_MEM_INIT(USE_MEM_INIT)) u_vector_dcm(
     .clk, .re(vector_mem_re), .we(vector_mem_we && !halted),
-    .addr(vector_addr), .wdata(vector_operand), .rdata(vector_mem_data)
+    .addr(vector_addr), .wdata(vector_operand), .rdata(vector_mem_data),
+    .host_we(host_vector_we), .host_entry(host_vector_entry),
+    .host_lane(host_vector_lane), .host_wdata(host_vector_wdata),
+    .host_wstrb(host_vector_wstrb), .host_rdata(host_vector_rdata)
   );
 
   always_comb begin

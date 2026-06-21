@@ -53,8 +53,26 @@ against which the pipeline gives the expected throughput improvement.
   updates even when it is forwarded without a stall.
 - There is no loop controller or reuse of the eight B vectors across rows.
 
-## Synthesis/report placeholders
+## Vivado results
 
-After selecting a target FPGA, record clock constraint, worst negative slack,
-LUT/FF/DSP/BRAM use, and power-estimator assumptions. Do not compare power
-without using the same device, clock, activity source, and tool settings.
+Vivado 2023.2 post-route results for `xc7z020clg400-1` are:
+
+| Metric | Baseline | Pipeline |
+|---|---:|---:|
+| Cycles | 234 | 237 |
+| Estimated Fmax | 65.432 MHz | 99.582 MHz |
+| Estimated latency | 3.576 us | 2.380 us |
+| LUTs | 14,173 | 16,554 |
+| FFs | 8,492 | 10,310 |
+| DSPs | 17 | 17 |
+| BRAM | 0 | 0 |
+| Vectorless total power | 0.263 W | 0.244 W |
+
+The measured latency improvement is approximately 1.50x despite the
+pipeline's three fill/drain cycles. The pipeline costs about 16.8% more LUTs
+and 21.4% more FFs.
+
+These Fmax values are calculated from the post-route critical paths at a
+10 ns constraint. Power uses identical device/tool settings and vectorless
+activity propagation; it is an estimate, not measurement. Detailed
+assumptions and AXI-top results are in `implementation_results.md`.

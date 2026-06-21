@@ -41,7 +41,16 @@ module tb_top_pipelined;
   logic signed [ACC_WIDTH-1:0] expected_lane;
 
   top dut_baseline(
-    .clk, .rst_n, .halted(baseline_halted), .dbg_pc(baseline_pc),
+    .clk, .rst_n,
+    .host_icm_we(1'b0), .host_icm_addr('0), .host_icm_wdata('0),
+    .host_icm_wstrb('0), .host_icm_rdata(),
+    .host_scalar_we(1'b0), .host_scalar_addr('0),
+    .host_scalar_wdata('0), .host_scalar_wstrb('0),
+    .host_scalar_rdata(), .host_vector_we(1'b0),
+    .host_vector_entry('0), .host_vector_lane('0),
+    .host_vector_wdata('0), .host_vector_wstrb('0),
+    .host_vector_rdata(),
+    .halted(baseline_halted), .dbg_pc(baseline_pc),
     .dbg_instruction(baseline_instruction),
     .dbg_scalar_rf_we(baseline_scalar_rf_we),
     .dbg_vector_rf_we(baseline_vector_rf_we),
@@ -50,7 +59,16 @@ module tb_top_pipelined;
   );
 
   top_pipelined dut_pipeline(
-    .clk, .rst_n, .halted(pipeline_halted), .dbg_pc(pipeline_pc),
+    .clk, .rst_n,
+    .host_icm_we(1'b0), .host_icm_addr('0), .host_icm_wdata('0),
+    .host_icm_wstrb('0), .host_icm_rdata(),
+    .host_scalar_we(1'b0), .host_scalar_addr('0),
+    .host_scalar_wdata('0), .host_scalar_wstrb('0),
+    .host_scalar_rdata(), .host_vector_we(1'b0),
+    .host_vector_entry('0), .host_vector_lane('0),
+    .host_vector_wdata('0), .host_vector_wstrb('0),
+    .host_vector_rdata(),
+    .halted(pipeline_halted), .dbg_pc(pipeline_pc),
     .dbg_if_id_valid(if_id_valid),
     .dbg_if_id_instruction(if_id_instruction),
     .dbg_id_ex_valid(id_ex_valid), .dbg_id_ex_opcode(id_ex_opcode),

@@ -21,7 +21,15 @@ module tb_top;
   logic signed [ACC_WIDTH-1:0] expected_lane;
 
   top dut(
-    .clk, .rst_n, .halted, .dbg_pc, .dbg_instruction,
+    .clk, .rst_n,
+    .host_icm_we(1'b0), .host_icm_addr('0), .host_icm_wdata('0),
+    .host_icm_wstrb('0), .host_icm_rdata(),
+    .host_scalar_we(1'b0), .host_scalar_addr('0),
+    .host_scalar_wdata('0), .host_scalar_wstrb('0),
+    .host_scalar_rdata(), .host_vector_we(1'b0),
+    .host_vector_entry('0), .host_vector_lane('0),
+    .host_vector_wdata('0), .host_vector_wstrb('0),
+    .host_vector_rdata(), .halted, .dbg_pc, .dbg_instruction,
     .dbg_scalar_rf_we, .dbg_vector_rf_we,
     .dbg_scalar_mem_we, .dbg_vector_mem_we
   );
